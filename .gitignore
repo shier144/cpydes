@@ -1,0 +1,19 @@
+# Runtime data (contains user data, passwords, etc.)
+data/
+
+# User uploaded images
+img/
+
+# Backup files (keep .htaccess only)
+backups/*
+!backups/.htaccess
+
+# AI output (keep .htaccess only)
+ai-output/*
+!ai-output/.htaccess
+
+# Third-party tool docs
+.qoder/
+
+# Node modules
+node_modules/

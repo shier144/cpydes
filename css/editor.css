@@ -1,0 +1,344 @@
+/* ========== 统一编辑器样式（前后端共用） ========== */
+/* 由 css/style.css 和 admin/css/admin.css 共同引用；
+   尺寸采用前端的紧凑样式（180-400px 高度、14.5px 字号、1.7 行高、200px 图片最大高度） */
+
+#editorContainer, #unifiedEditorContainer {
+    display: flex; flex-direction: column; flex: 1; min-height: 0;
+}
+
+.unified-editor-toolbar {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
+    padding: 6px 8px;
+    border: 1px solid var(--line, #e5e7eb);
+    border-bottom: none;
+    border-radius: var(--radius-sm, 6px) var(--radius-sm, 6px) 0 0;
+    background: #fafbfc;
+    position: relative;
+    flex-shrink: 0;
+}
+.editor-btn {
+    display: inline-flex; align-items: center; gap: 4px;
+    height: 30px; padding: 0 10px;
+    border: 1px solid #e2e8f0; border-radius: 6px;
+    background: white; font-size: 12.5px; font-weight: 600;
+    color: var(--t2, #475569); cursor: pointer; transition: all 0.15s;
+    white-space: nowrap;
+    font-family: inherit;
+}
+.editor-btn:hover {
+    border-color: var(--pri, #007aff); color: var(--pri, #007aff);
+    background: rgba(0,122,255,0.06);
+}
+.editor-btn.active {
+    background: var(--pri, #007aff); color: white; border-color: var(--pri, #007aff);
+}
+.editor-btn-sep {
+    display: inline-block;
+    width: 1px; height: 18px;
+    background: #e2e8f0;
+    margin: 0 4px;
+}
+.unified-editor {
+    min-height: 200px; flex: 1; padding: 14px;
+    border: 1px solid var(--line, #e5e7eb);
+    border-radius: 0 0 var(--radius-sm, 6px) var(--radius-sm, 6px);
+    font-size: 14.5px; line-height: 1.7; background: #fafbfd;
+    overflow-y: auto; color: var(--t1, #111827);
+    outline: none; transition: border-color 0.15s, background 0.15s;
+    word-break: break-word;
+}
+.unified-editor:focus { border-color: var(--pri, #007aff); background: white; }
+.unified-editor:empty::before {
+    content: attr(data-placeholder);
+    color: #9ca3af; pointer-events: none;
+}
+.unified-editor img {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: 6px;
+    cursor: zoom-in;
+    display: block;
+    margin: 4px 0;
+}
+.unified-editor.uploading { opacity: 0.6; pointer-events: none; }
+.unified-editor h1 { font-size: 1.6em; margin: 0.6em 0 0.3em; font-weight: 700; }
+.unified-editor h2 { font-size: 1.4em; margin: 0.6em 0 0.3em; font-weight: 700; }
+.unified-editor h3 { font-size: 1.2em; margin: 0.6em 0 0.3em; font-weight: 700; }
+.unified-editor p { margin: 0.4em 0; }
+.unified-editor ul, .unified-editor ol { margin: 0.4em 0; padding-left: 24px; }
+.unified-editor li { margin: 0.2em 0; }
+.unified-editor blockquote {
+    border-left: 3px solid var(--pri-l, #7dd3fc);
+    padding: 4px 12px;
+    margin: 0.5em 0;
+    color: var(--t2, #475569);
+    background: rgba(0,122,255,0.04);
+    border-radius: 0 4px 4px 0;
+}
+.unified-editor a { color: var(--pri, #007aff); text-decoration: underline; }
+.unified-editor code {
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Consolas', 'Menlo', monospace;
+    font-size: 0.9em;
+}
+.unified-editor-source {
+    min-height: 200px; flex: 1; padding: 14px;
+    border: 1px solid var(--line, #e5e7eb);
+    border-radius: 0 0 var(--radius-sm, 6px) var(--radius-sm, 6px);
+    font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+    font-size: 12.5px; line-height: 1.6;
+    background: #1e293b; color: #e2e8f0;
+    resize: none; outline: none;
+    width: 100%; box-sizing: border-box;
+}
+/* 字数统计、最后更新时间、失效提示已迁移到弹窗 modal-head-meta / modal-foot-meta，
+   由 editor.js 的 buildMetaHTML 生成，前后台共用此样式（前台 style.css + editor.css，
+   后台 admin.css + editor.css 均引入） */
+
+/* 弹窗标题右侧元信息（字数统计 + 最后更新时间） */
+.modal-head-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+    margin-right: 12px;
+    min-width: 0;
+    font-size: 12px;
+    color: var(--t3, #94a3b8);
+    font-weight: 500;
+    line-height: 1.4;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.modal-head-meta:empty { display: none; }
+.modal-head-meta .modal-head-updated { color: var(--t3, #94a3b8); }
+
+/* 底部按钮行失效提示（与按钮同一行，左对齐，按钮靠右） */
+.modal-foot-meta {
+    margin-right: auto;
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
+.modal-foot-meta:empty { display: none; }
+.modal-foot-meta .modal-foot-expired {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #d97706;
+    font-weight: 500;
+    background: rgba(217, 119, 6, 0.1);
+    padding: 4px 10px;
+    border-radius: 6px;
+    border-left: 3px solid #d97706;
+    line-height: 1.4;
+}
+.modal-foot-meta .modal-foot-expired svg { flex-shrink: 0; }
+
+/* 上传占位符：本地路径图片转码中的占位卡片 */
+.local-image-placeholder {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 80px; height: 80px;
+    border: 2px dashed #f59e0b;
+    border-radius: 6px;
+    background: rgba(245, 158, 11, 0.08);
+    color: #d97706;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 6px;
+    vertical-align: middle;
+    margin: 2px;
+}
+.local-image-placeholder:hover { background: rgba(245, 158, 11, 0.16); }
+
+/* 手动分段符：主题色虚线 + 居中标签药丸 */
+.unified-editor hr.segment-divider,
+#previewBody hr.segment-divider {
+    border: none;
+    border-top: 1.5px dashed var(--pri-l, #7dd3fc);
+    height: 0;
+    margin: 6px 0;
+    background: transparent;
+    position: relative;
+}
+.unified-editor hr.segment-divider::after,
+#previewBody hr.segment-divider::after {
+    content: '分段';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--card, #fff);
+    color: var(--pri, #007aff);
+    border: 1px solid var(--pri-l, #7dd3fc);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 10px;
+    letter-spacing: 1px;
+    line-height: 1.4;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+/* 手动同段标记：四边细边 + 浅色背景 + 右上角标签 */
+.unified-editor div.segment-keep,
+#previewBody div.segment-keep {
+    border: 1px solid #10b981;
+    background: rgba(16, 185, 129, 0.06);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    position: relative;
+}
+.unified-editor div.segment-keep::before,
+#previewBody div.segment-keep::before {
+    content: '同段';
+    position: absolute;
+    top: -9px;
+    right: 10px;
+    background: #10b981;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 8px;
+    border-radius: 8px;
+    letter-spacing: 1px;
+    line-height: 1.5;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+/* ========== Emoji 选择器弹层 ========== */
+.emoji-picker {
+    display: none; position: fixed !important;
+    z-index: 999999 !important; width: 400px;
+    background: white; border: 1.5px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 -6px 30px rgba(0,0,0,0.15), 0 -2px 10px rgba(0,0,0,0.08);
+    animation: emojiPickerInUp 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: auto !important;
+}
+@keyframes emojiPickerInUp {
+    from { opacity: 0; transform: translateY(8px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.emoji-picker.show { display: flex; flex-direction: column; }
+.emoji-body {
+    display: flex; flex-direction: column; flex: 1; overflow: hidden;
+}
+.emoji-picker-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 11px 16px; border-bottom: 1px solid #f1f5f9;
+    background: white; border-radius: 13px 13px 0 0;
+    width: 100%; box-sizing: border-box; order: -1;
+}
+.emoji-picker-title {
+    font-size: 13.5px; font-weight: 700; color: var(--t1, #111827);
+}
+.emoji-close-btn {
+    width: 26px; height: 26px; border: none; border-radius: 6px;
+    background: transparent; font-size: 14px; color: var(--t3, #94a3b8);
+    cursor: pointer; display: flex; align-items: center;
+    justify-content: center; flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+.emoji-close-btn:hover { background: #f1f5f9; color: var(--t1, #111827); transform: rotate(90deg); }
+.emoji-grid {
+    display: grid; grid-template-columns: repeat(9, 1fr); gap: 3px;
+    padding: 12px 14px; height: 200px; overflow-y: auto;
+}
+.emoji-grid::-webkit-scrollbar { width: 4px; }
+.emoji-grid::-webkit-scrollbar-track { background: transparent; }
+.emoji-grid::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+.emoji-item {
+    width: 34px; height: 34px; display: flex; align-items: center;
+    justify-content: center; font-size: 21px; border: none; border-radius: 7px;
+    background: transparent; cursor: pointer; transition: all 0.12s;
+}
+.emoji-item:hover { background: #e0f2fe; transform: scale(1.2); }
+.emoji-categories {
+    display: flex; gap: 4px; padding: 10px 14px 12px;
+    background: #fafbfc; border-top: 1px solid #f1f5f9;
+    border-radius: 0 0 13px 13px; overflow-x: auto; flex-wrap: nowrap;
+    scrollbar-width: thin; scrollbar-color: #d1d5db transparent;
+}
+.emoji-categories::-webkit-scrollbar { height: 4px; }
+.emoji-categories::-webkit-scrollbar-track { background: transparent; }
+.emoji-categories::-webkit-scrollbar-thumb {
+    background: linear-gradient(90deg, #cbd5e1, #94a3b8); border-radius: 3px;
+}
+.emoji-cat-btn {
+    flex-shrink: 0; height: 32px; padding: 0 10px;
+    border: 2px solid transparent; border-radius: 9px;
+    background: transparent; font-size: 18px; cursor: pointer;
+    transition: all 0.15s; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+}
+.emoji-cat-btn:hover { background: #f1f5f9; }
+.emoji-cat-btn.active {
+    background: white; border-color: var(--pri, #007aff);
+    box-shadow: 0 2px 8px rgba(0,122,255,0.2); transform: scale(1);
+}
+
+.editor-btn .feather,
+.emoji-close-btn .feather {
+    width: 13px;
+    height: 13px;
+    margin-right: 2px;
+}
+
+/* ========== 暗色模式 ========== */
+:root.dark-mode .unified-editor-toolbar {
+    background: #1f2937;
+    border-color: var(--line, #334155);
+}
+:root.dark-mode .editor-btn {
+    background: #1e293b; border-color: #334155; color: var(--t2, #cbd5e1);
+}
+:root.dark-mode .editor-btn:hover {
+    background: rgba(0,122,255,0.12); border-color: var(--pri, #007aff); color: var(--pri, #339aff);
+}
+:root.dark-mode .editor-btn-sep { background: #334155; }
+:root.dark-mode .unified-editor,
+:root.dark-mode .unified-editor-source {
+    background: #111827;
+    color: var(--t1, #f1f5f9);
+    border-color: var(--line, #334155);
+}
+:root.dark-mode .unified-editor:focus { background: #0f172a; }
+:root.dark-mode .unified-editor div.segment-keep,
+:root.dark-mode #previewBody div.segment-keep {
+    border-color: #34d399;
+    background: rgba(52, 211, 153, 0.10);
+}
+:root.dark-mode .unified-editor div.segment-keep::before,
+:root.dark-mode #previewBody div.segment-keep::before {
+    background: #34d399;
+    color: #053b2c;
+}
+:root.dark-mode .emoji-picker {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 -6px 30px rgba(0,0,0,0.5), 0 -2px 10px rgba(0,0,0,0.3);
+}
+:root.dark-mode .emoji-picker-head {
+    background: #1e293b;
+    border-bottom-color: #334155;
+}
+:root.dark-mode .emoji-picker-title { color: var(--t1, #f1f5f9); }
+:root.dark-mode .emoji-close-btn { color: var(--t3, #94a3b8); }
+:root.dark-mode .emoji-close-btn:hover { background: #334155; color: var(--t1, #f1f5f9); }
+:root.dark-mode .emoji-grid::-webkit-scrollbar-thumb { background: #475569; }
+:root.dark-mode .emoji-item:hover { background: #334155; }
+:root.dark-mode .emoji-categories {
+    background: #0f172a;
+    border-top-color: #334155;
+}
+:root.dark-mode .emoji-cat-btn:hover { background: #334155; }
+:root.dark-mode .emoji-cat-btn.active {
+    background: rgba(99,102,241,0.15);
+}

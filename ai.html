@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 助手 - Cpydes 文案库</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%236366f1' width='100' height='100' rx='20'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' fill='white'%3E文%3C/text%3E%3C/svg%3E">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/ai-chat.css?v=5">
+    <script src="js/prism/prism.min.js" defer></script>
+    <script src="js/prism/prism-python.min.js" defer></script>
+    <script src="js/prism/prism-javascript.min.js" defer></script>
+    <script src="js/prism/prism-typescript.min.js" defer></script>
+    <script src="js/prism/prism-css.min.js" defer></script>
+    <script src="js/prism/prism-markup.min.js" defer></script>
+    <script src="js/prism/prism-json.min.js" defer></script>
+    <script src="js/prism/prism-bash.min.js" defer></script>
+    <script src="js/feather.min.js" defer></script>
+    <script src="js/shared-utils.js" defer></script>
+    <style>
+        .ai-gen-loading-dots::after {
+            content: '...';
+            display: inline-block;
+            animation: loading-dots 1.5s infinite;
+            width: 20px; /* Give it a fixed width */
+            text-align: left;
+        }
+        @keyframes loading-dots {
+            0% { content: '.'; }
+            33% { content: '..'; }
+            66% { content: '...'; }
+            100% { content: '.'; }
+        }
+    </style>
+    <script>
+        // 主题初始化（必须在渲染前执行，避免闪烁）
+        // refreshFeatherIcons 由 shared-utils.js 提供（defer 加载，模块调用时已就绪）
+        (function() {
+            try {
+                var t = localStorage.getItem('cpydes_theme');
+                if (t === 'dark') {
+                    document.documentElement.classList.add('dark-mode');
+                } else if (t !== 'light') {
+                    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                        document.documentElement.classList.add('dark-mode');
+                    }
+                }
+            } catch(e) {}
+        })();
+    </script>
+</head>
+<body>
+<!-- AI 访问验证门禁（未登录或无权限时显示） -->
+<div class="ai-auth-gate" id="aiAuthGate" style="display:none;">
+    <div class="ai-auth-gate-inner">
+        <div class="ai-auth-gate-icon" id="aiAuthGateIcon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <h2 class="ai-auth-gate-title" id="aiAuthGateTitle">需要登录</h2>
+        <p class="ai-auth-gate-text" id="aiAuthGateText">请先登录账户后使用 AI 功能</p>
+        <div class="ai-auth-gate-actions">
+            <a href="index.php" class="ai-auth-gate-btn ai-auth-gate-btn-primary" id="aiAuthGateLoginBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>
+                前往登录
+            </a>
+            <a href="index.php" class="ai-auth-gate-btn ai-auth-gate-btn-default">返回文案库</a>
+        </div>
+    </div>
+</div>
+
+<div class="ai-app-container" id="aiAppContainer" style="display:none;">
+    <!-- Sidebar -->
+    <aside class="ai-sidebar" id="aiSidebar">
+        <div class="ai-sidebar-header">
+            <div class="ai-sidebar-brand">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+                <span>AI 助手</span>
+            </div>
+            <button class="ai-new-chat-btn" onclick="startNewChat()" title="新建对话">
+                <i data-feather="plus" style="width:16px;height:16px;"></i> 新对话
+            </button>
+        </div>
+        <div class="ai-sidebar-section">
+            <div class="ai-sidebar-title">最近对话</div>
+            <div class="ai-search-box">
+                <i data-feather="search" style="width:14px;height:14px;"></i>
+                <input type="text" class="ai-search-input" id="aiSearchInput" placeholder="搜索对话..." oninput="searchChats(this.value)">
+            </div>
+            <div class="ai-chat-list" id="chatList">
+                <div class="ai-chat-empty" id="chatListEmpty">
+                    <i data-feather="message-circle" style="width:32px;height:32px;opacity:0.3;"></i>
+                    <p>暂无对话记录</p>
+                    <small>开始新的对话吧</small>
+                </div>
+            </div>
+        </div>
+        <div class="ai-sidebar-footer">
+            <a href="index.php" class="ai-sidebar-link">
+                <i data-feather="arrow-left" style="width:16px;height:16px;"></i> 返回文案库
+            </a>
+        </div>
+    </aside>
+
+    <!-- Mobile sidebar toggle -->
+    <div class="ai-sidebar-overlay" id="aiSidebarOverlay" onclick="toggleAiSidebar()"></div>
+
+    <!-- Main Chat Area -->
+    <div class="ai-main-area">
+        <header class="ai-header">
+            <button class="ai-mobile-menu-btn" onclick="toggleAiSidebar()">
+                <i data-feather="menu" style="width:20px;height:20px;"></i>
+            </button>
+            <div class="ai-header-info">
+                <div class="ai-header-title" id="aiHeaderTitle">AI 智能对话</div>
+                <div class="ai-header-sub" id="aiHeaderSub">有什么可以帮助你的吗？</div>
+            </div>
+            <div class="ai-header-model" id="aiHeaderModel">
+                <div class="ai-model-selector" id="aiModelSelector">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    <span id="aiModelName">默认模型</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+                <div class="ai-model-dropdown" id="aiModelDropdown" style="display:none;">
+                </div>
+            </div>
+            <div class="ai-header-actions">
+                <button class="ai-header-btn" onclick="exportChat()" title="导出对话">
+                    <i data-feather="download" style="width:16px;height:16px;"></i>
+                </button>
+                <button class="ai-header-btn" onclick="clearCurrentChat()" title="清空当前对话">
+                    <i data-feather="trash-2" style="width:16px;height:16px;"></i>
+                </button>
+                <button class="ai-header-btn ai-theme-toggle-btn" onclick="toggleTheme()" title="切换主题">
+                    <i data-feather="moon" id="aiThemeIcon" style="width:16px;height:16px;"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="ai-content">
+            <!-- Welcome screen -->
+            <div class="ai-welcome" id="aiWelcome">
+                <div class="ai-welcome-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+                </div>
+                <h1>你好，我是 AI 助手</h1>
+                <p>我可以帮你撰写文案、优化表达、生成创意灵感</p>
+                <div class="ai-suggestion-grid">
+                    <div class="ai-suggestion-card" onclick="sendSuggestion('帮我写一段促销文案，产品是无线蓝牙耳机')">
+                        <div class="ai-suggestion-icon"><i data-feather="volume-2" style="width:20px;height:20px;"></i></div>
+                        <span>帮我写一段促销文案，产品是无线蓝牙耳机</span>
+                    </div>
+                    <div class="ai-suggestion-card" onclick="sendSuggestion('优化这段文案，使其更加有吸引力：产品便宜好用')">
+                        <div class="ai-suggestion-icon"><i data-feather="edit-3" style="width:20px;height:20px;"></i></div>
+                        <span>优化这段文案，使其更加有吸引力：产品便宜好用</span>
+                    </div>
+                    <div class="ai-suggestion-card" onclick="sendSuggestion('为新品上市写一个社交媒体宣传方案')">
+                        <div class="ai-suggestion-icon"><i data-feather="calendar" style="width:20px;height:20px;"></i></div>
+                        <span>为新品上市写一个社交媒体宣传方案</span>
+                    </div>
+                    <div class="ai-suggestion-card" onclick="sendSuggestion('总结一下目前市场上主流的办公软件有哪些')">
+                        <div class="ai-suggestion-icon"><i data-feather="briefcase" style="width:20px;height:20px;"></i></div>
+                        <span>总结一下目前市场上主流的办公软件有哪些</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Unified messages container (chat + image + video) -->
+            <div class="ai-messages ai-messages-unified" id="aiMessages">
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="ai-input-area" id="aiInputArea">
+            <div class="ai-input-wrapper">
+                <!-- 模式切换（嵌入输入区域） -->
+                <div class="ai-input-mode-tabs" id="aiInputModeTabs">
+                    <button class="ai-input-mode-tab active" data-mode="chat" onclick="switchAiMode('chat')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        <span>对话</span>
+                    </button>
+                    <button class="ai-input-mode-tab" data-mode="image" onclick="switchAiMode('image')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                        <span>生图</span>
+                    </button>
+                    <button class="ai-input-mode-tab" data-mode="video" onclick="switchAiMode('video')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                        <span>生视频</span>
+                    </button>
+                </div>
+                <!-- 生图模式工具栏 -->
+                <div class="ai-gen-toolbar" id="aiImageToolbar" style="display:none;">
+                    <div class="ai-gen-option">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" x2="14" y1="3" y2="10"/><line x1="3" x2="10" y1="21" y2="14"/></svg>
+                        <select id="aiImageSize" class="ai-gen-select">
+                            <option value="1024x1024">方形 1024×1024</option>
+                            <option value="1280x720" selected>横版 1280×720</option>
+                            <option value="720x1280">竖版 720×1280</option>
+                            <option value="1024x576">横版 16:9</option>
+                            <option value="576x1024">竖版 9:16</option>
+                        </select>
+                    </div>
+                    <div class="ai-gen-divider"></div>
+                    <div class="ai-gen-option">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        <select id="aiImageCount" class="ai-gen-select">
+                            <option value="1" selected>1 张</option>
+                            <option value="2">2 张</option>
+                            <option value="3">3 张</option>
+                            <option value="4">4 张</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- 生视频模式工具栏 -->
+                <div class="ai-gen-toolbar" id="aiVideoToolbar" style="display:none;">
+                    <div class="ai-gen-option ai-gen-option-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                        <input type="text" id="aiVideoImageUrl" class="ai-gen-input" placeholder="图片 URL（可选，图生视频）">
+                    </div>
+                </div>
+                <textarea class="ai-textarea" id="aiInput" placeholder="有问题，尽管问…" rows="1" onkeydown="handleAiInputKey(event)" oninput="autoResizeTextarea(this)"></textarea>
+                <div class="ai-input-toolbar">
+                    <div class="ai-input-tools-right">
+                        <button class="ai-stop-btn" id="aiStopBtn" onclick="stopGeneration()" style="display:none;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>
+                        </button>
+                        <button class="ai-send-btn" id="aiSendBtn" onclick="sendMessage()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="ai-input-footer">AI 生成的内容可能不准确，请注意甄别</div>
+        </div>
+        <button class="ai-scroll-bottom-btn" id="aiScrollBottomBtn" onclick="scrollToBottom()" style="display:none;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+    </div>
+</div>
+
+<script src="js/modules/state.js" defer></script>
+<script src="js/modules/utils.js" defer></script>
+<script src="js/modules/dataService.js" defer></script>
+<script src="js/modules/aiShared.js" defer></script>
+<script src="js/modules/aiUi.js" defer></script>
+<script src="js/modules/aiMarkdown.js" defer></script>
+<script src="js/modules/aiChatCore.js" defer></script>
+<script src="js/modules/aiMediaGen.js" defer></script>
+<script src="js/modules/aiInit.js" defer></script>
+<script>
+    // Wait for DOM to be ready then init
+    document.addEventListener('DOMContentLoaded', function() {
+        initAiChat();
+        // 对话搜索防抖（150ms），避免每次按键都全量过滤渲染
+        if (typeof debounce === 'function' && typeof window.searchChats === 'function') {
+            window.searchChats = debounce(window.searchChats, 150);
+        }
+    });
+
+</script>
+</body>
+</html>
